@@ -101,4 +101,45 @@ CREATE TRIGGER add_member_penelaah AFTER INSERT ON member_penelaah
 	FOR EACH ROW
 	EXECUTE PROCEDURE add_member_penelaah();
 
+CREATE OR REPLACE FUNCTION random_between(low INT ,high INT) 
+   RETURNS INT AS
+$$
+BEGIN
+   RETURN floor(random()* (high-low + 1) + low);
+END;
+$$ language 'plpgsql' STRICT;
+
+
+-- multicenter
+insert into multicenter (kep_id, pr_id, kep_utama)
+select distinct trunc(random() * 10000 + 1)
+, trunc(random() * 10000 + 1), false
+from generate_series(1, 1000000)
+
+update multicenter 
+set kep_utama = true
+where mod(kep_id, 5) = 0
+
+-- hasil_telaah
+insert into hasil_telaah (ht_id, pr_id, ht_statusproses)
+select generate_series(1, 1000000), 
+trunc(random() * 10000 + 1),  
+(array['PROSES', 'MENUNGGU', 'SELESAI'])[floor(random() * 3 + 1)];
+
+select * from hasil_telaah
+
+update hasil_telaah
+set ht_perbaikanke = random_between(1,2)
+where ht_statusproses = 'SELESAI' and mod(ht_id, 2) = 0;
+
+-- detail_nilai_telaah
+ALTER TABLE detail_nilai_telaah ALTER COLUMN sk_id DROP NOT NULL;
+
+insert into detail_nilai_telaah (dt_id, ag_id, ht_id, dt_rekomklasifikasi)
+select generate_series(1, 5000000), 
+random_between(1, 100000),  
+random_between(1, 1000000),  
+(array['E2', 'E1', 'FB'])[floor(random() * 3 + 1)];
+
+select * from detail_nilai_telaah;
 

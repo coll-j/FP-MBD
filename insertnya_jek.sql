@@ -29,8 +29,7 @@ CREATE TRIGGER add_kep BEFORE INSERT ON kep
 	EXECUTE PROCEDURE add_kep();
 
 -- Test insert KEP
-insert into kep (kep_nama, kep_email, kep_password) values ('test', 'tets', 'test')
-delete from kep
+-- insert into kep (kep_nama, kep_email, kep_password) values ('test', 'tets', 'test')
 
 -- Generate records
 -- kep
@@ -42,10 +41,15 @@ round(random())::int::bool, -- kep_statusaktif
 timestamp '2018-01-10 20:00:00' + random() * (timestamp '2020-12-31 20:00:00' - timestamp '2018-01-10 10:00:00') -- kep_statusdate
 ;
 
+ALTER TABLE sk_kep ALTER COLUMN sk_nomorsk DROP NOT NULL;
+
 -- sk kep
 insert into sk_kep (sk_id, kep_id, sk_validstart, sk_validend)
 select kep_id as sk_id, kep_id, kep_statusdate as sk_validstart, kep_statusdate + 90 as sk_validend -- 3 bulan
 from kep
+
+ALTER TABLE daftar_harga_layanan ALTER COLUMN dhl_hargavalidstart DROP NOT NULL;
+ALTER TABLE daftar_harga_layanan ALTER COLUMN dhl_hargavalidend DROP NOT NULL;
 
 -- daftar harga layanan
 insert into daftar_harga_layanan (dhl_id, kep_id, dhl_nama, dhl_biaya)
@@ -53,6 +57,10 @@ select generate_series(1, 100000)
 ,trunc(random() * 10000 + 1)
 ,(array['Penelitian Doktor', 'Penelitian Mahasiswa', 'Penelitian Kesehatan', 'Swasta', 'BUMN'])[floor(random() * 5 + 1)]
 ,trunc(random() * 1000 + 100) * 1000
+
+ALTER TABLE anggota ADD COLUMN jenis_kelamin VARCHAR;
+ALTER TABLE anggota ALTER COLUMN ag_email DROP NOT NULL;
+ALTER TABLE anggota ALTER COLUMN ag_password DROP NOT NULL;
 
 -- anggota
 insert into anggota (ag_id, ag_nama, ag_institusiasal, jenis_kelamin)
