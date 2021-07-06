@@ -1,36 +1,3 @@
--- Sequence ID KEP
-Drop sequence auto_kep;
-CREATE SEQUENCE auto_kep
-	AS integer
-	INCREMENT BY 1
-	MINVALUE 1
-	NO MAXVALUE
-	OWNED BY kep.kep_id;
-	
-CREATE OR REPLACE FUNCTION add_kep()
-	RETURNS TRIGGER
-	LANGUAGE plpgsql
-	AS $$
-BEGIN
-	NEW.kep_id := NEXTVAL('auto_kep');
-	WHILE NEW.kep_id IN (
-		SELECT kep_id
-		FROM kep
-	) LOOP
-		NEW.kep_id := NEXTVAL('auto_kep');
-	END LOOP;
-	RETURN NEW;
-END
-$$;
-
-drop trigger add_kep on kep;
-CREATE TRIGGER add_kep BEFORE INSERT ON kep
-	FOR EACH ROW
-	EXECUTE PROCEDURE add_kep();
-
--- Test insert KEP
--- insert into kep (kep_nama, kep_email, kep_password) values ('test', 'tets', 'test')
-
 -- Generate records
 -- kep
 insert into kep (kep_id, kep_nama, kep_reknamabank, kep_statusaktif, kep_statusdate)
@@ -68,3 +35,9 @@ select generate_series(1, 100000)
 ,concat((array['Anggun ', 'Bayu ', 'Cece ', 'Dirga ', 'Ehehe '])[floor(random() * 5 + 1)], substr(md5(random()::text), 0, 5))-- nama
 ,(array['ITS', 'UI', 'Unair', 'Telkom', 'UPNVJ'])[floor(random() * 5 + 1)]
 ,(array['P', 'L', 'N'])[floor(random() * 3 + 1)]
+
+-- member_kep
+insert into member_kep (ag_id, sk_id)
+select distinct trunc(random() * 100000 + 1) as ag_id
+, trunc(random() * 10000 + 1) as sk_id
+from generate_series(1, 1000000)
